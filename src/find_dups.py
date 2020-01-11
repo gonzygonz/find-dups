@@ -108,7 +108,7 @@ class Folder:
 def main():
     global verbose_flag
     verbose_flag = True
-    f = Folder('d:/Jenny LG G4/Jenny LG G4/', 'type', 100)
+    f = Folder(sys.argv[1], 'type', 100)
     print(
         "\n*******************************************************************\nDuplicated files:\n*******************************************************************")
     f.print_dups()
