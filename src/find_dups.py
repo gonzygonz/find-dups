@@ -5,6 +5,8 @@ import os
 from collections import defaultdict
 import errno
 import filecmp
+import argparse
+import time
 
 min_size = 300 * 1024  # 300KB
 look_in_paths = []
@@ -97,8 +99,9 @@ class Folder:
         bucket = [[ent_list[0]]]
         for ent in ent_list[1:]:
             for num, b in enumerate(bucket):
-                #TODO: add shallow by user flag, and maybe other types of combining similar
-                if filecmp.cmp(b[0], ent, shallow=False):
+                # TODO: maybe other types of combining similar
+                shallow = self.scan_type is 'shallow'
+                if filecmp.cmp(b[0], ent, shallow=shallow):
                     bucket[num].append(ent)
                 else:
                     bucket.append([ent])
@@ -106,13 +109,25 @@ class Folder:
 
 
 def main():
+    start = time.time()
     global verbose_flag
-    verbose_flag = True
-    f = Folder(sys.argv[1], 'type', 100)
-    print(
+    parser = argparse.ArgumentParser(description='Enc Dec.')
+    parser.add_argument('-s', '--shallow', action='store_true',
+                        help='shallow compare files. works much faster but doesnt compare content of the file')
+    parser.add_argument('-v', '--verbose', action='store_true', help='print verbose messages')
+    parser.add_argument('-z', '--size', type=int, default=10000,  help='minimum file size to look in bytes')
+    parser.add_argument('path')
+
+    args = parser.parse_args()
+    verbose_flag = args.verbose
+    scan_type = 'shallow' if args.shallow else 'regular'
+    f = Folder(args.path, scan_type, args.size)
+    vprint(
         "\n*******************************************************************\nDuplicated files:\n*******************************************************************")
     f.print_dups()
-    print("DONE!")
+    end = time.time()
+    vprint("total: %.2fs" % (end - start))
+    vprint("DONE!")
 
 
 if __name__ == "__main__":
